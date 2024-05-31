@@ -126,9 +126,19 @@ int main(int argc, char* argv[])
 			continue;
 		}
 		else if (strcmp(tokens[0], "exit")==0){
+			if (tokens[1]!=NULL){
+				perror("Command not executed due to input");
+				continue;
+			}
 			exit(1);
 		}
 		else if(strcmp(tokens[0], "pwd")==0){
+			if (tokens[1]!=NULL)
+			{
+				perror("Command not executed due to input");
+				continue;
+			}
+			
 			getcwd(cwd, sizeof(cwd));
 			continue;
 		}
@@ -137,10 +147,62 @@ int main(int argc, char* argv[])
 			if (tokens[1] == NULL) {
                 tokens[1] = "/home";
             }
+			if (tokens[2]!=NULL)
+			{
+				perror("Unnecessary input");
+				continue;
+			}
+			
 			if(chdir(tokens[1])!=0){
 				perror("Failed to cd");
 			}
 			continue;
+		}
+		else if (strcmp(tokens[0], "help")==0)
+		{
+			if (tokens[1]==NULL){
+				perror("Input error");
+				continue;
+			}
+			if (tokens[2]!=NULL)
+			{
+				perror("Too many inputs");
+				continue;
+			}
+			
+			if (strcmp(tokens[1], "cd")==0)
+			{
+				char* output="'cd' is a built in command for changing the current working directory \n";
+				write(STDOUT_FILENO, output, strlen(output));
+				continue;
+			}
+			else if (strcmp(tokens[1], "pwd")==0)
+			{
+				char* output="'pwd' is a built in command for outputting the current directory \n";
+				write(STDOUT_FILENO, output, strlen(output));
+				continue;
+			}
+			else if (strcmp(tokens[1], "exit")==0)
+			{
+				char* output="'exit' is a built in command for exiting the shell \n";
+				write(STDOUT_FILENO, output, strlen(output));
+				continue;
+			}
+			else if (strcmp(tokens[1], "help")==0)
+			{
+				char* output="'help' is a built in command for giving information on commands \n";
+				write(STDOUT_FILENO, output, strlen(output));
+				continue;
+			}
+			else{
+				char str[700];
+				strcpy(str, tokens[1]);
+				strcpy(str, " is a built in command for giving information on commands \n");
+				write(STDOUT_FILENO, str, strlen(str));
+				continue;
+			}
+			
+
 		}
 		
 		
