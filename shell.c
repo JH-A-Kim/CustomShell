@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <linux/limits.h>
+#include <errno.h>
 
 #define COMMAND_LENGTH 1024
 #define NUM_TOKENS (COMMAND_LENGTH / 2 + 1)
@@ -132,7 +133,13 @@ int main(int argc, char* argv[])
 		}
 		else if (strcmp(tokens[0],"cd")==0)
 		{
-			
+			if (tokens[1] == NULL) {
+                tokens[1] = "/home";
+            }
+			if(chdir(tokens[1])!=0){
+				perror("Failed to cd");
+			}
+			continue;
 		}
 		
 		
