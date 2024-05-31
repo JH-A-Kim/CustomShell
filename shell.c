@@ -113,22 +113,18 @@ int main(int argc, char* argv[])
             perror("getcwd() error");
             exit(1);
         }
-        
-        // Prepare prompt
         char prompt[PATH_MAX + 3];
         snprintf(prompt, sizeof(prompt), "%s $ ", cwd);
-        
-        // Display prompt
-        write(STDOUT_FILENO, prompt, strlen(prompt));
-
-		// Get command
-		// Use write because we need to use read() to work with
-		// signals, and read() is incompatible with printf().
-		// write(STDOUT_FILENO, "$ ", strlen("$ "));
+		
+		write(STDOUT_FILENO, prompt, strlen(prompt));
 		_Bool in_background = false;
 		read_command(input_buffer, tokens, &in_background);
 
-		if (strcmp(tokens[0], "exit")==0){
+		if (tokens[0]==NULL)
+		{
+			continue;
+		}
+		else if (strcmp(tokens[0], "exit")==0){
 			exit(1);
 		}
 		else if(strcmp(tokens[0], "pwd")==0){
