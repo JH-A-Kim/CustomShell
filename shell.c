@@ -130,6 +130,7 @@ int main(int argc, char* argv[])
 		}
 		else if(strcmp(tokens[0], "pwd")==0){
 			getcwd(cwd, sizeof(cwd));
+			continue;
 		}
 		else if (strcmp(tokens[0],"cd")==0)
 		{
