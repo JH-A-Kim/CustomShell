@@ -108,12 +108,27 @@ int main(int argc, char* argv[])
 	char input_buffer[COMMAND_LENGTH];
 	char *tokens[NUM_TOKENS];
 	char cwd[PATH_MAX];
+	char path[100];
+
+	char* user=getenv("USER");
+	char* home=getenv("HOME");
+
+	strcpy(path, "/");
+	strcpy(path, user);
+	strcpy(path, "/");
+	strcpy(path, home);
+
+	if (chdir(path)!=0){
+		perror("failed to enter home directory");
+		exit(1);
+	}
 	while (true) {
 
 		if (getcwd(cwd, sizeof(cwd)) == NULL) {
             perror("getcwd() error");
             exit(1);
         }
+
         char prompt[PATH_MAX + 3];
         snprintf(prompt, sizeof(prompt), "%s $ ", cwd);
 		
@@ -145,7 +160,7 @@ int main(int argc, char* argv[])
 		else if (strcmp(tokens[0],"cd")==0)
 		{
 			if (tokens[1] == NULL) {
-                tokens[1] = "/home";
+                tokens[1] = path;
             }
 			if (tokens[2]!=NULL)
 			{
