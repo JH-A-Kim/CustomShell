@@ -180,6 +180,8 @@ int main(int argc, char* argv[])
 				continue;
 			}
 			getcwd(cwd, sizeof(cwd));
+			write(STDOUT_FILENO, cwd, strlen(cwd));
+			write(STDOUT_FILENO, "\n", strlen("\n"));
 			continue;
 		}
 		else if (strcmp(tokens[0],"cd")==0)
