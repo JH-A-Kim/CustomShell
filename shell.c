@@ -15,7 +15,7 @@
 #define NUM_TOKENS (COMMAND_LENGTH / 2 + 1)
 #define HISTORY_DEPTH 10
 char history[HISTORY_DEPTH][COMMAND_LENGTH];
-int count=0;
+int count=1;
 
 
 /**
@@ -103,19 +103,37 @@ void read_command(char *buff, char *tokens[], _Bool *in_background)
 	}
 }
 
-void addHistory(char *ptr){
-	if (count>=HISTORY_DEPTH){
-		for (int i=1; i<HISTORY_DEPTH; i++){
-			strcpy(history[i-1], history[i]);
-		}
-		strcpy(history[HISTORY_DEPTH-1], ptr);
-		count++;
-	}
-	else{
-		strcpy(history[count], ptr);
-		count++;
-	}
+void addHistory(char *tokens[], bool background) {
+    char command[COMMAND_LENGTH];
+    command[0] = '\0';
+	char count1[COMMAND_LENGTH];
+	sprintf(count1, "%d\t", count);
+
+	strcat(command, count1);
+    for (int i = 0; tokens[i] != NULL; i++) {
+        strcat(command, tokens[i]);
+        strcat(command, " ");
+    }
+
+    if (background) {
+        strcat(command, "& ");
+    }
+
+    if (strlen(command) > 0) {
+        command[strlen(command) - 1] = '\0';
+    }
+
+    if (count < HISTORY_DEPTH) {
+        strcpy(history[count], command);
+    } else {
+        for (int i = 1; i < HISTORY_DEPTH; i++) {
+            strcpy(history[i - 1], history[i]);
+        }
+        strcpy(history[HISTORY_DEPTH - 1], command);
+    }
+    count++;
 }
+
 void printHistory() {
     for (int i = 0; i < count && i < HISTORY_DEPTH; i++) {
 		write(STDOUT_FILENO, history[i], strlen(history[i]));
@@ -164,6 +182,7 @@ int main(int argc, char* argv[])
 		}
 		else if (strcmp(tokens[0], "history")==0) {
 			printHistory();
+			addHistory(tokens, false);
 			continue;
 		}
 		else if (strcmp(tokens[0], "exit")==0){
@@ -182,6 +201,7 @@ int main(int argc, char* argv[])
 			getcwd(cwd, sizeof(cwd));
 			write(STDOUT_FILENO, cwd, strlen(cwd));
 			write(STDOUT_FILENO, "\n", strlen("\n"));
+			addHistory(tokens, false);
 			continue;
 		}
 		else if (strcmp(tokens[0],"cd")==0)
@@ -198,7 +218,7 @@ int main(int argc, char* argv[])
 			if(chdir(tokens[1])!=0){
 				perror("Failed to cd");
 			}
-			addHistory(tokens[0]);
+			addHistory(tokens, false);
 			continue;
 		}
 		else if (strcmp(tokens[0], "help")==0)
@@ -217,40 +237,41 @@ int main(int argc, char* argv[])
 			{
 				char* output="'cd' is a built in command for changing the current working directory \n";
 				write(STDOUT_FILENO, output, strlen(output));
-				continue;
+				
 			}
 			else if (strcmp(tokens[1], "history")==0)
 			{
 				char* output="'history' is a built in command for outputting the last ten commands executed \n";
 				write(STDOUT_FILENO, output, strlen(output));
-				continue;
+				
 			}
 			else if (strcmp(tokens[1], "pwd")==0)
 			{
 				char* output="'pwd' is a built in command for outputting the current directory \n";
 				write(STDOUT_FILENO, output, strlen(output));
-				continue;
+				
 			}
 			else if (strcmp(tokens[1], "exit")==0)
 			{
 				char* output="'exit' is a built in command for exiting the shell \n";
 				write(STDOUT_FILENO, output, strlen(output));
-				continue;
+				
 			}
 			else if (strcmp(tokens[1], "help")==0)
 			{
 				char* output="'help' is a built in command for giving information on commands \n";
 				write(STDOUT_FILENO, output, strlen(output));
-				continue;
+				
 			}
 			else{
 				char str[700];
 				strcpy(str, tokens[1]);
-				strcpy(str, " is a built in command for giving information on commands \n");
+				strcat(str, " is a built in command for giving information on commands \n");
 				write(STDOUT_FILENO, str, strlen(str));
-				continue;
+				
 			}
-			
+			addHistory(tokens, false);
+			continue;
 
 		}
 		
@@ -271,7 +292,10 @@ int main(int argc, char* argv[])
 			{
 				waitpid(p, NULL, 0);
 			}
-			
+			else{
+				addHistory(tokens, true);
+			}
+			addHistory(tokens, false);
 		}
 		while (waitpid(-1, NULL, WNOHANG)>0){
 					;
