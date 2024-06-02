@@ -13,6 +13,9 @@
 
 #define COMMAND_LENGTH 1024
 #define NUM_TOKENS (COMMAND_LENGTH / 2 + 1)
+#define HISTORY_DEPTH 10
+char history[HISTORY_DEPTH][COMMAND_LENGTH];
+int count=0;
 
 
 /**
@@ -100,6 +103,26 @@ void read_command(char *buff, char *tokens[], _Bool *in_background)
 	}
 }
 
+void addHistory(char *ptr){
+	if (count>=HISTORY_DEPTH){
+		for (int i=1; i<HISTORY_DEPTH; i++){
+			strcpy(history[i-1], history[i]);
+		}
+		strcpy(history[HISTORY_DEPTH-1], ptr);
+		count++;
+	}
+	else{
+		strcpy(history[count], ptr);
+		count++;
+	}
+}
+void printHistory() {
+    for (int i = 0; i < count && i < HISTORY_DEPTH; i++) {
+		write(STDOUT_FILENO, history[i], strlen(history[i]));
+		write(STDOUT_FILENO, "\n", strlen("\n"));
+    }
+}
+
 /**
  * Main and Execute Commands
  */
@@ -123,7 +146,6 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 	while (true) {
-
 		if (getcwd(cwd, sizeof(cwd)) == NULL) {
             perror("getcwd() error");
             exit(1);
@@ -140,6 +162,10 @@ int main(int argc, char* argv[])
 		{
 			continue;
 		}
+		else if (strcmp(tokens[0], "history")==0) {
+			printHistory();
+			continue;
+		}
 		else if (strcmp(tokens[0], "exit")==0){
 			if (tokens[1]!=NULL){
 				perror("Command not executed due to input");
@@ -153,7 +179,6 @@ int main(int argc, char* argv[])
 				perror("Command not executed due to input");
 				continue;
 			}
-			
 			getcwd(cwd, sizeof(cwd));
 			continue;
 		}
@@ -171,6 +196,7 @@ int main(int argc, char* argv[])
 			if(chdir(tokens[1])!=0){
 				perror("Failed to cd");
 			}
+			addHistory(tokens[0]);
 			continue;
 		}
 		else if (strcmp(tokens[0], "help")==0)
@@ -188,6 +214,12 @@ int main(int argc, char* argv[])
 			if (strcmp(tokens[1], "cd")==0)
 			{
 				char* output="'cd' is a built in command for changing the current working directory \n";
+				write(STDOUT_FILENO, output, strlen(output));
+				continue;
+			}
+			else if (strcmp(tokens[1], "history")==0)
+			{
+				char* output="'history' is a built in command for outputting the last ten commands executed \n";
 				write(STDOUT_FILENO, output, strlen(output));
 				continue;
 			}
