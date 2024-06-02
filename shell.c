@@ -135,7 +135,14 @@ void addHistory(char *tokens[], bool background) {
 }
 
 void printHistory() {
-    for (int i = 0; i < count && i < HISTORY_DEPTH; i++) {
+	int num;
+	if (count>HISTORY_DEPTH){
+		num=HISTORY_DEPTH;
+	}
+	else {
+		num=count;
+	}
+    for (int i = num; i > 0; i--) {
 		write(STDOUT_FILENO, history[i], strlen(history[i]));
 		write(STDOUT_FILENO, "\n", strlen("\n"));
     }
