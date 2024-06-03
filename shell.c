@@ -15,7 +15,7 @@
 #define NUM_TOKENS (COMMAND_LENGTH / 2 + 1)
 #define HISTORY_DEPTH 10
 char history[HISTORY_DEPTH][COMMAND_LENGTH];
-int count=1;
+int count=0;
 
 
 /**
@@ -107,7 +107,7 @@ void addHistory(char *tokens[], bool background) {
     char command[COMMAND_LENGTH];
     command[0] = '\0';
 	char count1[COMMAND_LENGTH];
-	sprintf(count1, "%d\t", count);
+	sprintf(count1, "%d\t", count+1);
 
 	strcat(command, count1);
     for (int i = 0; tokens[i] != NULL; i++) {
@@ -187,8 +187,9 @@ int main(int argc, char* argv[])
 		_Bool in_background = false;
 
 		if (previousCommandFlag){
-			tokenize_command(previousCommand, tokens);
-			previousCommandFlag=false;
+			strcpy(input_buffer, previousCommand);
+            tokenize_command(input_buffer, tokens);
+            previousCommandFlag = false;
 		}
 		else{
 			read_command(input_buffer, tokens, &in_background);
@@ -291,23 +292,38 @@ int main(int argc, char* argv[])
 			addHistory(tokens, false);
 			continue;
 		}
-		else if(strcmp(tokens[0], "!!") == 0) {	
-			if (tokens[1]!=NULL){
-				perror("Invalid Input !!");
-				continue;
-			}
-			else{
-				if (count>1)
-				{
-					char *history_entry = history[HISTORY_DEPTH - 1];
-					char *tab_position = strchr(history_entry, '\t');
-					previousCommandFlag=true;
+		else if (strcmp(tokens[0], "!!") == 0) {
+    		if (tokens[1] != NULL) {
+        		perror("Invalid Input !!");
+        		continue;
+    		}
+    		if (count == 0) {
+        		perror("No commands in history");
+        		continue;
+    		} 
+			else if (count>HISTORY_DEPTH){
+        		char *history_entry = history[HISTORY_DEPTH-1];
+        		char *tab_position = strchr(history_entry, '\t');
+        		if (tab_position != NULL) {
+					previousCommandFlag = true;
 					strcpy(previousCommand, tab_position + 1);
+					write(STDOUT_FILENO, previousCommand, strlen(previousCommand));
+					write(STDOUT_FILENO, "\n", strlen("\n"));
 					continue;
+        		}
+    		}
+			else{
+					char *history_entry = history[count-1];
+        			char *tab_position = strchr(history_entry, '\t');
+        			if (tab_position != NULL) {
+						previousCommandFlag = true;
+						strcpy(previousCommand, tab_position + 1);
+						write(STDOUT_FILENO, previousCommand, strlen(previousCommand));
+						write(STDOUT_FILENO, "\n", strlen("\n"));
+						continue;
+        			}
 				}
-				
-			}
-		}
+}
 
 		pid_t p=fork();
 		if (p<0){
