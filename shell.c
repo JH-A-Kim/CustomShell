@@ -200,8 +200,8 @@ int main(int argc, char* argv[])
 			continue;
 		}
 		else if (strcmp(tokens[0], "history")==0) {
-			printHistory();
 			addHistory(tokens, false);
+			printHistory();
 			continue;
 		}
 		else if (strcmp(tokens[0], "exit")==0){
@@ -292,6 +292,19 @@ int main(int argc, char* argv[])
 			addHistory(tokens, false);
 			continue;
 		}
+		else if(strcmp(tokens[0], "!-")==0){
+			if (tokens[1]!=NULL){
+				perror("Invalid input");
+			}
+			else{
+				for (int i=0; i<HISTORY_DEPTH; i++){
+					memset(history[i], '\0', COMMAND_LENGTH);
+				}
+				count=0;
+				write(STDOUT_FILENO, "Successfully reset history\n", strlen("Successfully reset history\n"));
+			}
+			continue;
+		}
 		else if (strcmp(tokens[0], "!!") == 0) {
     		if (tokens[1] != NULL) {
         		perror("Invalid Input !!");
@@ -323,7 +336,7 @@ int main(int argc, char* argv[])
 						continue;
         			}
 				}
-}
+			}
 
 		pid_t p=fork();
 		if (p<0){
@@ -338,12 +351,15 @@ int main(int argc, char* argv[])
 		else {
 			if (!in_background)
 			{
-				waitpid(p, NULL, 0);
+				int status;
+				waitpid(p, &status, 0);
+				if (WIFEXITED(status) && WEXITSTATUS(status)==0){
+					addHistory(tokens, false);
+				}
 			}
 			else{
 				addHistory(tokens, true);
 			}
-			addHistory(tokens, false);
 		}
 		while (waitpid(-1, NULL, WNOHANG)>0){
 					;
