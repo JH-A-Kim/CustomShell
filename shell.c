@@ -142,7 +142,7 @@ void printHistory() {
 	else {
 		num=count;
 	}
-    for (int i = num; i > 0; i--) {
+    for (int i = num; i >= 0; i--) {
 		write(STDOUT_FILENO, history[i], strlen(history[i]));
 		write(STDOUT_FILENO, "\n", strlen("\n"));
     }
@@ -161,6 +161,9 @@ int main(int argc, char* argv[])
 	char* user=getenv("USER");
 	char* home=getenv("HOME");
 
+	bool previousCommandFlag=false;
+	char previousCommand[COMMAND_LENGTH] ="";
+
 	strcpy(path, "/");
 	strcpy(path, user);
 	strcpy(path, "/");
@@ -175,13 +178,21 @@ int main(int argc, char* argv[])
             perror("getcwd() error");
             exit(1);
         }
+	
 
         char prompt[PATH_MAX + 3];
         snprintf(prompt, sizeof(prompt), "%s $ ", cwd);
 		
 		write(STDOUT_FILENO, prompt, strlen(prompt));
 		_Bool in_background = false;
-		read_command(input_buffer, tokens, &in_background);
+
+		if (previousCommandFlag){
+			tokenize_command(previousCommand, tokens);
+			previousCommandFlag=false;
+		}
+		else{
+			read_command(input_buffer, tokens, &in_background);
+		}
 
 		if (tokens[0]==NULL)
 		{
@@ -279,10 +290,24 @@ int main(int argc, char* argv[])
 			}
 			addHistory(tokens, false);
 			continue;
-
 		}
-		
-		
+		else if(strcmp(tokens[0], "!!") == 0) {	
+			if (tokens[1]!=NULL){
+				perror("Invalid Input !!");
+				continue;
+			}
+			else{
+				if (count>1)
+				{
+					char *history_entry = history[HISTORY_DEPTH - 1];
+					char *tab_position = strchr(history_entry, '\t');
+					previousCommandFlag=true;
+					strcpy(previousCommand, tab_position + 1);
+					continue;
+				}
+				
+			}
+		}
 
 		pid_t p=fork();
 		if (p<0){
