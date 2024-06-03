@@ -17,6 +17,10 @@
 char history[HISTORY_DEPTH][COMMAND_LENGTH];
 int count=0;
 
+// int isDigit(char c);
+// int getCommandNumber(char *token);
+// char* getCommandFromHistory(int commandNumber);
+
 
 /**
  * Command Input and Processing
@@ -147,6 +151,46 @@ void printHistory() {
 		write(STDOUT_FILENO, "\n", strlen("\n"));
     }
 }
+int isDigit(char c) {
+    return c >= '0' && c <= '9';
+}
+
+int getCommandNumber(char *token) {
+    
+    return atoi(&token[1]);
+}
+int getOtherCommandNumber(const char *entry) {
+    char number_str[COMMAND_LENGTH];
+    int i = 0;
+    
+    // Copy digits from entry to number_str
+    while (entry[i] != '\0' && entry[i] != '\t' && i < COMMAND_LENGTH - 1) {
+        if (entry[i] >= '0' && entry[i] <= '9') {
+            number_str[i] = entry[i];
+        } else {
+            break;
+        }
+        i++;
+    }
+    number_str[i] = '\0';
+
+    return atoi(number_str);
+}
+char* getCommandFromHistory(int commandNumber) {
+    int lowerRange=count-HISTORY_DEPTH;
+	if (commandNumber < 1 || commandNumber > count || commandNumber<lowerRange) {
+        return NULL;
+    }
+	for (int i = 0; i < HISTORY_DEPTH; i++) {
+        if (history[i][0] != '\0' && commandNumber == getOtherCommandNumber(history[i])) {
+            char* temp = strchr(history[i], '\t');
+            if (temp != NULL) {
+                return temp + 1;
+            }
+        }
+    }
+    return NULL;
+}
 
 /**
  * Main and Execute Commands
@@ -188,7 +232,11 @@ int main(int argc, char* argv[])
 
 		if (previousCommandFlag){
 			strcpy(input_buffer, previousCommand);
-            tokenize_command(input_buffer, tokens);
+            int token_count=tokenize_command(input_buffer, tokens);
+			if (token_count > 0 && strcmp(tokens[token_count - 1], "&") == 0) {
+				in_background = true;
+				tokens[token_count - 1] = 0;
+			}
             previousCommandFlag = false;
 		}
 		else{
@@ -305,6 +353,25 @@ int main(int argc, char* argv[])
 			}
 			continue;
 		}
+		else if (tokens[0][0] == '!' && isDigit(tokens[0][1])) {
+ 			int commandNumber = getCommandNumber(tokens[0]);
+    		char *command = getCommandFromHistory(commandNumber);
+    		if (command != NULL) {
+        		previousCommandFlag = true;
+				strcpy(previousCommand, command);
+				write(STDOUT_FILENO, previousCommand, strlen(previousCommand));
+				write(STDOUT_FILENO, "\n", strlen("\n"));
+				continue;
+			} 
+			else {
+				char error_msg[50];
+				snprintf(error_msg, sizeof(error_msg), "Command number %d not found\n", commandNumber);
+				write(STDOUT_FILENO, error_msg, strlen(error_msg));
+				continue;
+    		}
+		}
+
+		
 		else if (strcmp(tokens[0], "!!") == 0) {
     		if (tokens[1] != NULL) {
         		perror("Invalid Input !!");
