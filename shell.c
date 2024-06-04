@@ -17,10 +17,6 @@
 char history[HISTORY_DEPTH][COMMAND_LENGTH];
 int count=0;
 
-// int isDigit(char c);
-// int getCommandNumber(char *token);
-// char* getCommandFromHistory(int commandNumber);
-
 
 /**
  * Command Input and Processing
@@ -291,7 +287,14 @@ int main(int argc, char* argv[])
 		else if (strcmp(tokens[0], "help")==0)
 		{
 			if (tokens[1]==NULL){
-				perror("Input error");
+				write(STDOUT_FILENO, "cd: changes working directory\n", strlen("cd: changes working directory\n"));
+				write(STDOUT_FILENO, "history: display the history\n", strlen("history: display the history\n"));
+				write(STDOUT_FILENO, "exit: exit the shell\n", strlen("exit: exit the shell\n"));
+				write(STDOUT_FILENO, "pwd: displays working directory\n", strlen("pwd: displays working directory\n"));
+				write(STDOUT_FILENO, "help: displays command information\n", strlen("help: displays command information\n"));
+				write(STDOUT_FILENO, "!!: previous command executed\n", strlen("!!: previous command executed\n"));
+				write(STDOUT_FILENO, "!n: choose command to execute from history\n", strlen("!n: choose command to execute from history\n"));
+				write(STDOUT_FILENO, "!-: clears history\n", strlen("!-: clears history\n"));
 				continue;
 			}
 			if (tokens[2]!=NULL)
@@ -330,10 +333,22 @@ int main(int argc, char* argv[])
 				write(STDOUT_FILENO, output, strlen(output));
 				
 			}
+			else if (strcmp(tokens[1], "!!")==0){
+				char* output="'!!' is a built in command for executing the previous command \n";
+				write(STDOUT_FILENO, output, strlen(output));
+			}
+			else if (strcmp(tokens[1], "!n")==0){
+				char* output="'!n' is a built in command for executing the command n in the history \n";
+				write(STDOUT_FILENO, output, strlen(output));
+			}
+			else if (strcmp(tokens[1], "!-")==0){
+				char* output="'!n' is a built in command for clearing the history \n";
+				write(STDOUT_FILENO, output, strlen(output));
+			}
 			else{
 				char str[700];
 				strcpy(str, tokens[1]);
-				strcat(str, " is a built in command for giving information on commands \n");
+				strcat(str, " is a external command or application \n");
 				write(STDOUT_FILENO, str, strlen(str));
 				
 			}
