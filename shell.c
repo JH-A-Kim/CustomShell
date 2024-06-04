@@ -104,7 +104,11 @@ void read_command(char *buff, char *tokens[], _Bool *in_background)
 	}
 	
 }
-
+/**
+ * addHistory will take the tokens array and bool background and will add whatever values are currently in the tokens array.
+ * if background is true it will append & to the end of the string.
+ * it will also take the count and add it to the beginning of the command to denote when it was done and add a tab to make it more organized.
+*/
 void addHistory(char *tokens[], bool background) {
     char command[COMMAND_LENGTH];
     command[0] = '\0';
@@ -135,7 +139,9 @@ void addHistory(char *tokens[], bool background) {
     }
     count++;
 }
-
+/**
+ * printHistory will print the history in descending order from largest to smallest.
+*/
 void printHistory() {
 	int num;
 	if (count>HISTORY_DEPTH){
@@ -149,14 +155,24 @@ void printHistory() {
 		write(STDOUT_FILENO, "\n", strlen("\n"));
     }
 }
+/**
+ * isDigit will take a char and see if it is a a digit as opposed to the isDigit that is in the std library but takes an integer.
+*/
 int isDigit(char c) {
     return c >= '0' && c <= '9';
 }
 
+/**
+ * getCommandNumber will use atoi to get the command number from token.
+*/
 int getCommandNumber(char *token) {
     
     return atoi(&token[1]);
 }
+
+/**
+ * getOtherCommandNumber will take a string and will iterate through until it is no longer numbers to get a number larger than a single index and return the number
+*/
 int getOtherCommandNumber(const char *entry) {
     char number_str[COMMAND_LENGTH];
     int i = 0;
@@ -173,6 +189,12 @@ int getOtherCommandNumber(const char *entry) {
 
     return atoi(number_str);
 }
+
+/**
+ * getCommandFromHistory will take a a number and will first check if its within the range of possible numbers from the lowerRange of the count and the upper range being count
+ * if the number is within those 2 values then it will iterate through the history string to check each of the numbers it has to see if it matches one and will return
+ * the string of the command with just the command and no tab or number.
+*/
 char* getCommandFromHistory(int commandNumber) {
     int lowerRange=count-HISTORY_DEPTH;
 	if (commandNumber < 1 || commandNumber > count || commandNumber<lowerRange) {
@@ -188,7 +210,9 @@ char* getCommandFromHistory(int commandNumber) {
     }
     return NULL;
 }
-
+/**
+ * handle_SIGINT will handle the ctrl+c and output help information.
+*/
 void handle_SIGINT(int sig){
 	const char* help_message = "\nHelp Information:\n"
                                "cd: changes working directory\n"
