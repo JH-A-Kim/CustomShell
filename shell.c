@@ -243,7 +243,6 @@ int main(int argc, char* argv[])
         char prompt[PATH_MAX + 3];
         snprintf(prompt, sizeof(prompt), "%s $ ", cwd);
 		
-		write(STDOUT_FILENO, prompt, strlen(prompt));
 		_Bool in_background = false;
 
 		if (previousCommandFlag){
@@ -256,6 +255,7 @@ int main(int argc, char* argv[])
             previousCommandFlag = false;
 		}
 		else{
+			write(STDOUT_FILENO, prompt, strlen(prompt));
 			read_command(input_buffer, tokens, &in_background);
 		}
 
@@ -317,6 +317,7 @@ int main(int argc, char* argv[])
                                "!n: choose command to execute from history\n"
                                "!-: clears history\n";
     			write(STDOUT_FILENO, help_message, strlen(help_message));
+				addHistory(tokens, false);
 				continue;
 			}
 			if (tokens[2]!=NULL)
