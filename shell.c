@@ -10,6 +10,7 @@
 #include <sys/wait.h>
 #include <linux/limits.h>
 #include <errno.h>
+#include <signal.h>
 
 #define COMMAND_LENGTH 1024
 #define NUM_TOKENS (COMMAND_LENGTH / 2 + 1)
@@ -79,7 +80,7 @@ void read_command(char *buff, char *tokens[], _Bool *in_background)
 	// Read input
 	int length = read(STDIN_FILENO, buff, COMMAND_LENGTH-1);
 
-	if (length < 0) {
+	if ((length < 0) && (errno !=EINTR)) {
 		perror("Unable to read command from keyboard. Terminating.\n");
 		exit(-1);
 	}
@@ -101,6 +102,7 @@ void read_command(char *buff, char *tokens[], _Bool *in_background)
 		*in_background = true;
 		tokens[token_count - 1] = 0;
 	}
+	
 }
 
 void addHistory(char *tokens[], bool background) {
@@ -159,7 +161,6 @@ int getOtherCommandNumber(const char *entry) {
     char number_str[COMMAND_LENGTH];
     int i = 0;
     
-    // Copy digits from entry to number_str
     while (entry[i] != '\0' && entry[i] != '\t' && i < COMMAND_LENGTH - 1) {
         if (entry[i] >= '0' && entry[i] <= '9') {
             number_str[i] = entry[i];
@@ -188,6 +189,19 @@ char* getCommandFromHistory(int commandNumber) {
     return NULL;
 }
 
+void handle_SIGINT(int sig){
+	const char* help_message = "\nHelp Information:\n"
+                               "cd: changes working directory\n"
+                               "history: display the history\n"
+                               "exit: exit the shell\n"
+                               "pwd: displays working directory\n"
+                               "help: displays command information\n"
+                               "!!: previous command executed\n"
+                               "!n: choose command to execute from history\n"
+                               "!-: clears history\n";
+    write(STDOUT_FILENO, help_message, strlen(help_message));
+}
+
 /**
  * Main and Execute Commands
  */
@@ -203,6 +217,12 @@ int main(int argc, char* argv[])
 
 	bool previousCommandFlag=false;
 	char previousCommand[COMMAND_LENGTH] ="";
+
+    struct sigaction handler;
+    handler.sa_handler = handle_SIGINT;
+    handler.sa_flags = 0;
+    sigemptyset(&handler.sa_mask);
+    sigaction(SIGINT, &handler, NULL);
 
 	strcpy(path, "/");
 	strcpy(path, user);
@@ -287,14 +307,16 @@ int main(int argc, char* argv[])
 		else if (strcmp(tokens[0], "help")==0)
 		{
 			if (tokens[1]==NULL){
-				write(STDOUT_FILENO, "cd: changes working directory\n", strlen("cd: changes working directory\n"));
-				write(STDOUT_FILENO, "history: display the history\n", strlen("history: display the history\n"));
-				write(STDOUT_FILENO, "exit: exit the shell\n", strlen("exit: exit the shell\n"));
-				write(STDOUT_FILENO, "pwd: displays working directory\n", strlen("pwd: displays working directory\n"));
-				write(STDOUT_FILENO, "help: displays command information\n", strlen("help: displays command information\n"));
-				write(STDOUT_FILENO, "!!: previous command executed\n", strlen("!!: previous command executed\n"));
-				write(STDOUT_FILENO, "!n: choose command to execute from history\n", strlen("!n: choose command to execute from history\n"));
-				write(STDOUT_FILENO, "!-: clears history\n", strlen("!-: clears history\n"));
+				const char* help_message = "\nHelp Information:\n"
+                               "cd: changes working directory\n"
+                               "history: display the history\n"
+                               "exit: exit the shell\n"
+                               "pwd: displays working directory\n"
+                               "help: displays command information\n"
+                               "!!: previous command executed\n"
+                               "!n: choose command to execute from history\n"
+                               "!-: clears history\n";
+    			write(STDOUT_FILENO, help_message, strlen(help_message));
 				continue;
 			}
 			if (tokens[2]!=NULL)
