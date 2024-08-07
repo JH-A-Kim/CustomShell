@@ -1,5 +1,3 @@
-// Shell starter file
-// You may make any changes to any part of this file.
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -503,14 +501,6 @@ int main(int argc, char* argv[])
 		if (in_background) {
 			write(STDOUT_FILENO, "Run in background.", strlen("Run in background."));
 		}
-		/**
-		 * Steps For Basic Shell:
-		 * 1. Fork a child process
-		 * 2. Child process invokes execvp() using results in token array.
-		 * 3. If in_background is false, parent waits for
-		 *    child to finish. Otherwise, parent loops back to
-		 *    read_command() again immediately.
-		 */
         
 	}
 	return 0;
