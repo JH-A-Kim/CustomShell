@@ -27,5 +27,6 @@ This is a simple shell program written in C that provides basic command-line fun
 
 ```sh
 make clean
+'''sh
 make
 
