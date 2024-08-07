@@ -21,7 +21,7 @@ This is a simple shell program written in C that provides basic command-line fun
 
 ## Files
 
-- **main.c:** The main source file containing the implementation of the shell program.
+- **shell.c:** The main source file containing the implementation of the shell program.
 
 ## Compilation
 
