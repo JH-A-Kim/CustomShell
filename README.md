@@ -21,12 +21,28 @@ This is a simple shell program written in C that provides basic command-line fun
 
 ## Files
 
-- **shell.c:** The main source file containing the implementation of the shell program.
+- **main.c:** The main source file containing the implementation of the shell program.
+- **Makefile:** The Makefile to manage the build process.
 
 ## Compilation
 
-```sh
-make clean
-```sh
-make
+### Using Makefile
 
+1. Clean previous builds (if any):
+
+    ```sh
+    make clean
+    ```
+
+2. Compile the program:
+
+    ```sh
+    make
+    ```
+
+### Manually
+
+If you prefer to compile manually:
+
+```sh
+gcc -o shell main.c
