@@ -26,5 +26,6 @@ This is a simple shell program written in C that provides basic command-line fun
 ## Compilation
 
 ```sh
-gcc -o shell main.c
+make clean
+make
 
